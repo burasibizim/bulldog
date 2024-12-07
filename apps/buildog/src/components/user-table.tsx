@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@ui/components/button";
+import LongPressButton from "./long-press-button";
 import { DataTable } from "@ui/components/ui/data-table";
 import {
   DropdownMenu,
@@ -221,9 +222,9 @@ export default function UserTable() {
               </div>
 
               <DialogFooter>
-                <Button className="bg-red-500 hover:bg-red-600" onClick={() => deleteUser(user.id)}>
+                <LongPressButton color="red" onDelete={() => deleteUser(user.id)}>
                   Delete
-                </Button>
+                </LongPressButton>
                 <Button onClick={saveUserChanges}>Save</Button>
               </DialogFooter>
             </DialogContent>
