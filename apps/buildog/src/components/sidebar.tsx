@@ -13,8 +13,8 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@ui/components/ui/sidebar";
+import SidebarAvatarMenu from "./sidebar-avatar-menu";
 import { NotePencil, HashStraight, Globe, Gear } from "@ui/components/react-icons";
-import AvatarDropdown from "./avatar-dropdown";
 
 interface SidebarProps {
   className?: string;
@@ -97,7 +97,7 @@ export function AppSidebar({ className, organizationId }: SidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarTrigger />
-        <AvatarDropdown />
+        <SidebarAvatarMenu />
       </SidebarFooter>
     </Sidebar>
   );

@@ -13,8 +13,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@ui/components/ui/sidebar";
+import SidebarAvatarMenu from "./sidebar-avatar-menu";
 import { User, CircleHalf, LockSimple, ArrowUUpLeft } from "@ui/components/react-icons";
-import AvatarDropdown from "./avatar-dropdown";
 interface SidebarProps {
   className?: string;
 }
@@ -99,7 +99,7 @@ export function AccountSidebar({ className }: SidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarTrigger />
-        <AvatarDropdown />
+        <SidebarAvatarMenu />
       </SidebarFooter>
     </Sidebar>
   );
