@@ -1,82 +1,70 @@
 "use client";
 
-import React, { useState } from "react";
-import Editor from "@editor/Editor";
+import { Service } from "@/web-sdk";
 import { Input } from "@ui/components/input";
+import { Textarea } from "@ui/components/textarea";
+import React, { useState } from "react";
 
-type MarkdownNode = {
-  type: string;
-  content: string | MarkdownNode[];
-};
+export default function Page({ params }) {
+  const { organizationId } = params;
+  const [markdownText, setMarkdownText] = useState<string>("");
+  const [documentName, setDocumentName] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
 
-function RenderMarkdown({ nodes }: { nodes: MarkdownNode[] }) {
-  return (
-    <>
-      {nodes.map((node, index) => {
-        switch (node.type) {
-          case "h1":
-            return (
-              <h1 key={index} className="text-2xl font-bold">
-                {RenderMarkdown({ nodes: node.content as MarkdownNode[] })}
-              </h1>
-            );
-          case "h2":
-            return (
-              <h2 key={index} className="text-xl font-bold">
-                {RenderMarkdown({ nodes: node.content as MarkdownNode[] })}
-              </h2>
-            );
-          case "h3":
-            return (
-              <h3 key={index} className="text-lg font-bold">
-                {RenderMarkdown({ nodes: node.content as MarkdownNode[] })}
-              </h3>
-            );
-          case "p":
-            return <p key={index}>{RenderMarkdown({ nodes: node.content as MarkdownNode[] })}</p>;
-          case "ul":
-            return (
-              <ul key={index} className="list-disc list-inside">
-                {RenderMarkdown({ nodes: node.content as MarkdownNode[] })}
-              </ul>
-            );
-          case "li":
-            return <li key={index}>{RenderMarkdown({ nodes: node.content as MarkdownNode[] })}</li>;
-          case "bold":
-            return <strong key={index}>{node.content as string}</strong>;
-          case "italic":
-            return <em key={index}>{node.content as string}</em>;
-          case "underline":
-            return <u key={index}>{node.content as string}</u>;
-          case "code":
-            return (
-              <code key={index} className="bg-gray-100 rounded px-1">
-                {node.content as string}
-              </code>
-            );
-          default:
-            return <span key={index}>{node.content as string}</span>;
-        }
-      })}
-    </>
-  );
-}
+  const handleUpload = async () => {
+    if (!markdownText.trim()) {
+      setStatus("Please enter some Markdown content.");
+      return;
+    }
 
-export default function Page() {
-  const [markdownData, setMarkdownData] = useState();
+    if (!documentName.trim()) {
+      setStatus("Please enter a document name.");
+      return;
+    }
 
-  const onSave = (data) => {
-    setMarkdownData(data);
+    const sanitizedFileName = documentName.replaceAll(" ", "-");
+    const fileName = sanitizedFileName.endsWith(".md")
+      ? sanitizedFileName
+      : `${sanitizedFileName}.md`;
+
+    const markdownBlob = new Blob([markdownText], { type: "text/markdown" });
+    const markdownFile = new File([markdownBlob], fileName, {
+      type: "text/markdown",
+    });
+
+    const formData = new FormData();
+    formData.append("file", markdownFile);
+    formData.append("title", documentName);
+    formData.append("preview", "preview test string");
+    formData.append("status", "draft");
+    formData.append("tags", JSON.stringify(["react", "markdown", "test"]));
+
+    try {
+      setStatus("Uploading...");
+      const response = await Service.makeAuthenticatedRequest("documents", "POST", formData, {
+        organization_id: organizationId as string,
+      });
+      setStatus(`Upload successful: ${response.data}`);
+    } catch (error: any) {
+      setStatus(`Upload failed: ${error.response?.data || error.message}`);
+    }
   };
 
   return (
     <div>
-      <div className="flex flex-col gap-2">
-        <Input placeholder="Title" />
-        <Editor onSave={onSave} />
-      </div>
-
-      {markdownData && <RenderMarkdown nodes={markdownData} />}
+      <Input
+        type="text"
+        value={documentName}
+        onChange={(e) => setDocumentName(e.target.value)}
+        placeholder="Enter document name (e.g., myfile.md)"
+      />
+      <Textarea
+        value={markdownText}
+        onChange={(e) => setMarkdownText(e.target.value)}
+        placeholder="Enter Markdown content here..."
+      />
+      <button onClick={handleUpload}>Upload</button>
+      {status && <p>{status}</p>}
     </div>
   );
 }

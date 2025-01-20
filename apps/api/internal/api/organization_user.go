@@ -16,7 +16,7 @@ func (a *api) addUserToOrganization(w http.ResponseWriter, r *http.Request) {
 	}
 	organizationID := r.Header.Get("organization_id")
 
-	user, err := a.userRepo.GetUserWithEmail(payload.Email)
+	user, err := a.repository.Users.GetUserWithEmail(payload.Email)
 	if err != nil {
 		log.Printf("Error fetching user by email: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to retrieve user")
@@ -29,7 +29,7 @@ func (a *api) addUserToOrganization(w http.ResponseWriter, r *http.Request) {
 		Role:           payload.Role,
 	}
 
-	createdOrganizationUser, err := a.organizationUsersRepo.CreateOrganizationUser(organizationUser)
+	createdOrganizationUser, err := a.repository.OrganizationUsers.CreateOrganizationUser(organizationUser)
 	if a.handleOrganizationUserError(w, err, "creating organization user") {
 		return
 	}
@@ -52,7 +52,7 @@ func (a *api) updateUserRoleInOrganization(w http.ResponseWriter, r *http.Reques
 	}
 
 	organizationID := r.Header.Get("organization_id")
-	err := a.organizationUsersRepo.UpdateOrganizationUserRole(organizationID, payload.UserID, payload.Role)
+	err := a.repository.OrganizationUsers.UpdateOrganizationUserRole(organizationID, payload.UserID, payload.Role)
 	if a.handleOrganizationUserError(w, err, "updating user role") {
 		return
 	}
@@ -67,7 +67,7 @@ func (a *api) deleteUserFromOrganization(w http.ResponseWriter, r *http.Request)
 	}
 
 	organizationID := r.Header.Get("organization_id")
-	err := a.organizationUsersRepo.DeleteOrganizationUser(organizationID, payload.UserID)
+	err := a.repository.OrganizationUsers.DeleteOrganizationUser(organizationID, payload.UserID)
 	if a.handleOrganizationUserError(w, err, "deleting user from organization") {
 		return
 	}
@@ -86,7 +86,7 @@ func (a *api) getOrganizationUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	organizationID := r.Header.Get("organization_id")
-	userInfo, err := a.organizationUsersRepo.GetOrganizationUserInfo(userID, organizationID)
+	userInfo, err := a.repository.OrganizationUsers.GetOrganizationUserInfo(userID, organizationID)
 	if a.handleOrganizationUserError(w, err, "getting user information") {
 		return
 	}
@@ -101,7 +101,7 @@ func (a *api) listOrganizationUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := a.organizationUsersRepo.ListOrganizationUsers(organizationID)
+	users, err := a.repository.OrganizationUsers.ListOrganizationUsers(organizationID)
 	if a.handleOrganizationUserError(w, err, "listing organization users") {
 		return
 	}

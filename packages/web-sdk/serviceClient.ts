@@ -28,8 +28,15 @@ class ServiceClient {
       // Default headers
       const defaultHeaders: { [key: string]: string } = {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       };
+
+      // Check if data is FormData
+      const isFormData = data instanceof FormData;
+
+      // Add Content-Type header only if data is not FormData
+      if (!isFormData) {
+        defaultHeaders["Content-Type"] = "application/json";
+      }
 
       // Combine default headers with dynamic headers passed as argument
       const finalHeaders = { ...defaultHeaders, ...headers };
@@ -40,7 +47,7 @@ class ServiceClient {
       };
 
       if (data && method !== "GET") {
-        options.body = JSON.stringify(data);
+        options.body = isFormData ? data : JSON.stringify(data);
       }
 
       const response = await fetch(`${this.serviceBaseUrl}/${endpoint}`, options);

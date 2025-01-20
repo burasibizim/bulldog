@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type DocumentStatus string
 
@@ -11,12 +13,11 @@ const (
 )
 
 type DocumentCreateRequest struct {
-	OrganizationId string         `json:"organization_id" validate:"required"`
-	Name           string         `json:"name" validate:"required"`
-	Title          string         `json:"title" validate:"required"`
-	Preview        string         `json:"preview"`
-	Status         DocumentStatus `json:"status" validate:"required,oneof=published draft scheduled"`
-	Tags           []string       `json:"tags"`
+	Title   string         `json:"title" validate:"required"`
+	Preview string         `json:"preview"`
+	Status  DocumentStatus `json:"status" validate:"required,oneof=published draft scheduled"`
+	Tags    []string       `json:"tags"`
+	File    []byte         `json:"file"`
 }
 
 type DocumentUpdateRequest struct {

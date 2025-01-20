@@ -21,7 +21,7 @@ func (a *api) getOrganizationsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	organizations, err := a.organizationsRepo.GetAllOrganizations(userID)
+	organizations, err := a.repository.Organizations.GetAllOrganizations(userID)
 
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
@@ -57,7 +57,7 @@ func (a *api) createOrganizationHandler(w http.ResponseWriter, r *http.Request) 
 		CreatedBy:   userID,
 	}
 
-	organization, err := a.organizationsRepo.CreateOrganization(&org)
+	organization, err := a.repository.Organizations.CreateOrganization(&org)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to create organization")
@@ -70,9 +70,16 @@ func (a *api) createOrganizationHandler(w http.ResponseWriter, r *http.Request) 
 		Role:           "owner",
 	}
 
-	organizationUser, err := a.organizationUsersRepo.CreateOrganizationUser(user)
+	organizationUser, err := a.repository.OrganizationUsers.CreateOrganizationUser(user)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
+		utils.JSONError(w, http.StatusInternalServerError, "Failed to create organization")
+		return
+	}
+
+	err = a.cloudService.CodebuildService.CreateCodebuild(organization.Id)
+	if err != nil {
+		log.Printf("Error codebuild: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to create organization")
 		return
 	}
@@ -87,7 +94,7 @@ func (a *api) updateOrganizationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	organization, err := a.organizationsRepo.UpdateOrganization(&payload)
+	organization, err := a.repository.Organizations.UpdateOrganization(&payload)
 	if err != nil {
 		log.Printf("Error updating organization: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to update organization")
@@ -104,7 +111,7 @@ func (a *api) deleteOrganizationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	result, err := a.organizationsRepo.DeleteOrganization(&payload)
+	result, err := a.repository.Organizations.DeleteOrganization(&payload)
 	if err != nil {
 		log.Printf("Error deleting user: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to delete organization")

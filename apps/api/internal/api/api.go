@@ -4,38 +4,42 @@ import (
 	"api/internal/auth"
 	"api/internal/middleware"
 	"api/internal/repository"
+	"api/internal/service"
 	"api/pkg/database"
+	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/gorilla/mux"
 )
 
 type api struct {
-	db *database.DB
-
-	organizationsRepo     *repository.OrganizationRepository
-	organizationUsersRepo *repository.OrganizationUserRepository
-	userRepo              *repository.UserRepository
-	documentRepo          *repository.DocumentRepository
-	authService           auth.AuthorizationService
+	db           *database.DB
+	authService  *auth.AuthService
+	cloudService *service.CloudService
+	repository   *repository.Repository
 }
 
 func NewApi(db *database.DB) (*api, error) {
-	organizationRepo := repository.NewOrganizationRepository(db)
-	organizationUserRepo := repository.NewOrganizationUserRepository(db)
-	userRepo := repository.NewUserRepository(db)
-	authService := auth.NewAuthService(organizationUserRepo)
-	documentRepo := repository.NewDocumentRepository(db)
+	repo := repository.NewRepository(db)
+	authService := auth.NewAuthService(repo.OrganizationUsers)
+
+	// cloud services
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load configuration, %v", err)
+	}
+	codebuildService := service.NewCodebuildService(codebuild.NewFromConfig(cfg))
+	storageService := service.NewStorageService("buildog-web")
+	cloudService := service.NewCloudService(codebuildService, storageService)
 
 	return &api{
-		db: db,
-
-		organizationsRepo:     organizationRepo,
-		organizationUsersRepo: organizationUserRepo,
-		userRepo:              userRepo,
-		documentRepo:          documentRepo,
-		authService:           authService,
+		db:           db,
+		authService:  authService,
+		cloudService: cloudService,
+		repository:   repo,
 	}, nil
 
 }
@@ -132,6 +136,12 @@ func (a *api) documentRoutes(protectedRouter *mux.Router) {
 	protectedRouter.HandleFunc("/documents/{document_id}",
 		auth.RequirePermission(a.authService, auth.PermissionReadDocument)(a.getDocumentHandler),
 	).Methods(http.MethodGet, http.MethodOptions)
+
+	protectedRouter.HandleFunc("/documents/publish",
+		auth.RequirePermission(a.authService, auth.PermissionPublishWeb)(a.publishWebHandler),
+	).Methods(http.MethodPost, http.MethodOptions)
+
+	// protectedRouter.HandleFunc("/upload-md", uploadMarkdownHandler).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (a *api) healthRoutes(router *mux.Router) {

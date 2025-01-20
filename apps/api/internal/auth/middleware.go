@@ -6,11 +6,6 @@ import (
 	"net/http"
 )
 
-type AuthorizationService interface {
-	GetUserRole(organizationID, userID string) (Role, error)
-	HasPermission(role Role, permission Permission) bool
-}
-
 type OrganizationUsersRepository interface {
 	GetOrganizationUserRole(organizationID, userID string) (Role, error)
 }
@@ -19,7 +14,7 @@ type AuthService struct {
 	organizationUsersRepo OrganizationUsersRepository
 }
 
-func NewAuthService(repo OrganizationUsersRepository) AuthorizationService {
+func NewAuthService(repo OrganizationUsersRepository) *AuthService {
 	return &AuthService{
 		organizationUsersRepo: repo,
 	}
@@ -44,7 +39,7 @@ func (s *AuthService) HasPermission(role Role, permission Permission) bool {
 }
 
 // RequirePermission creates a middleware that checks if the user has the required permission
-func RequirePermission(authService AuthorizationService, requiredPermission Permission) func(http.HandlerFunc) http.HandlerFunc {
+func RequirePermission(authService *AuthService, requiredPermission Permission) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			claims, ok := utils.GetTokenClaims(r)

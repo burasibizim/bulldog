@@ -36,7 +36,7 @@ func (a *api) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: now,
 	}
 
-	success, err := a.userRepo.CreateUser(user)
+	success, err := a.repository.Users.CreateUser(user)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to create user")
@@ -59,7 +59,7 @@ func (a *api) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.userRepo.GetUserWithID(userID)
+	user, err := a.repository.Users.GetUserWithID(userID)
 	if err != nil {
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to get user")
 		return
@@ -86,7 +86,7 @@ func (a *api) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	success, err := a.userRepo.UpdateUser(userID, payload.FirstName, payload.LastName)
+	success, err := a.repository.Users.UpdateUser(userID, payload.FirstName, payload.LastName)
 	if err != nil {
 		utils.JSONError(w, http.StatusInternalServerError, "Failed to update user")
 		return

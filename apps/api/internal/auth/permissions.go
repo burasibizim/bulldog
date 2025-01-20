@@ -17,6 +17,8 @@ const (
 	PermissionUpdateDocument Permission = "update:document"
 	PermissionDeleteDocument Permission = "delete:document"
 	PermissionReadDocument   Permission = "read:document"
+
+	PermissionPublishWeb Permission = "publish:web"
 )
 
 type Role string
@@ -42,6 +44,7 @@ var RolePermissions = map[Role][]Permission{
 		PermissionUpdateDocument,
 		PermissionDeleteDocument,
 		PermissionReadDocument,
+		PermissionPublishWeb,
 	},
 	RoleAdmin: {
 		PermissionReadUser,
@@ -52,6 +55,7 @@ var RolePermissions = map[Role][]Permission{
 		PermissionUpdateDocument,
 		PermissionDeleteDocument,
 		PermissionReadDocument,
+		PermissionPublishWeb,
 	},
 	RoleWriter: {
 		PermissionReadUser,
